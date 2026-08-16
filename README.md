@@ -73,6 +73,24 @@ The CSV mode looks for a `sequence`/`Sequence`/`SEQUENCE` column (case-insensiti
 
 Output columns: `input_sequence`, `generated_sequence`, `entropy`, `percent_identity_to_parent`.
 
+### Three-letter amino acid codes
+
+`gen_mask` and `gen_from_multimask` expect single-letter sequences. If your sequence
+is in three-letter form, convert it with the helpers in `CafChemProteinMaskEmbed.py`
+(not wired into the CLI — use them in a script or interpreter):
+
+```python
+import CafChemProteinMaskEmbed as pm
+
+seq = pm.three_letter_seq_to_one("Ala-Gly-Leu")   # -> "AGL"
+# ... pass seq to pm.gen_mask(seq, percent_masked) ...
+three_letter = pm.one_letter_seq_to_three("AGL")  # -> "ALA-GLY-LEU"
+```
+
+`three_letter_seq_to_one` accepts codes separated by whitespace, hyphens,
+underscores, commas, or slashes, or run together with no separator (e.g.
+`"AlaGlyLeu"`) as long as the total length is a multiple of 3.
+
 ## Repository layout
 
 ```

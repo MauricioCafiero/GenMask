@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, EsmModel, EsmForMaskedLM, pipeline
 import torch
 import random
+import re
 import py3Dmol
 import requests
 from sklearn.metrics.pairwise import cosine_similarity
@@ -137,6 +138,45 @@ def three_to_one(three_seq):
       one_seq.append('X')
 
   return one_seq
+
+def three_letter_seq_to_one(three_letter_seq: str) -> str:
+  '''
+  Convert a three-letter-code amino acid sequence into the single-letter sequence
+  string used elsewhere in this module (gen_mask, gen_from_multimask, embeddings).
+  Accepts codes separated by whitespace, hyphens, underscores, commas, or slashes
+  (e.g. "Ala-Gly-Leu", "ALA GLY LEU"), or run together with no separator
+  (e.g. "AlaGlyLeu") as long as the total length is a multiple of 3. Not wired into
+  the CLIs -- convert to single-letter before calling gen_mask, and use
+  one_letter_seq_to_three below to convert results back afterward.
+
+    Args:
+        three_letter_seq: three-letter-code sequence, case-insensitive.
+
+    Returns:
+        A single-letter sequence string. Unrecognized codes become 'X'.
+  '''
+  tokens = [t for t in re.split(r'[\s\-_,/]+', three_letter_seq.strip()) if t]
+  if len(tokens) == 1 and len(tokens[0]) > 3 and len(tokens[0]) % 3 == 0:
+    joined = tokens[0]
+    tokens = [joined[i:i+3] for i in range(0, len(joined), 3)]
+  tokens = [t.upper() for t in tokens]
+  return ''.join(three_to_one(tokens))
+
+def one_letter_seq_to_three(seq: str, sep: str = '-') -> str:
+  '''
+  Convert a single-letter amino acid sequence string back into three-letter-code
+  form, joined by sep. Inverse of three_letter_seq_to_one -- use this to convert
+  gen_mask's output sequences back to three-letter form if that's what the user
+  brought in originally.
+
+    Args:
+        seq: single-letter sequence string.
+        sep: separator to join the three-letter codes with (default '-').
+
+    Returns:
+        A three-letter-code sequence string, e.g. "ALA-GLY-LEU".
+  '''
+  return sep.join(one_to_three(residue) for residue in seq)
 
 def genmask_model_setup(model_name: str):
   '''
