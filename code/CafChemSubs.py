@@ -384,7 +384,7 @@ def gen_mask(smile_in: str, percent_masked: float) -> str:
         pic: An image of the molecules with QED values.
   """
   which_statins = [smile_in]
-  percent_to_use = 0.10
+  percent_to_use = percent_masked
   try:
     main_smiles = []
     main_entropy = []
